@@ -8,7 +8,7 @@
 | Stack | Vite + React + TypeScript (static SPA) |
 | Serving | Panel-owned nginx at `http://<server>:8443`, proxies `/api/v1` to the backend |
 | Auth | Admin JWT via `POST /api/v1/admin/login` (60-min, no refresh; re-login) |
-| Status | **M1 done, M2 done** — backend fixes merged + panel scaffold building |
+| Status | **M1–M5 complete, live** — backend fixes merged, panel built + deployed to `http://87.107.5.88:8443`, own CI deploys on every `main` push |
 
 ## 0. Boundaries (important)
 
@@ -258,3 +258,15 @@ The panel does **not** depend on the backend's nginx, compose, or deploy files.
   everyone + view reported message by report ID). Route-level code-splitting (each page is a lazy
   chunk; initial bundle ~775 kB / 251 kB gzip). All pages hit the exact backend shapes mapped in
   `src/api/types.ts`.
+- **M5 (deploy & CI/CD, live):** Panel deployed to the VPS at `/opt/bondi-admin`, served on
+  `http://87.107.5.88:8443`. Own GitHub Actions (`deploy.yml`): install → typecheck → build →
+  scp → `docker compose up -d --build` on every `main` push; secrets `VPS_HOST`/`VPS_USERNAME`/
+  `VPS_PASSWORD` set on the repo. Backend admin auth enabled server-side (`.env`:
+  `ADMIN_USERNAME=admin` + bcrypt `ADMIN_PASSWORD_HASH`, hash generated via the app container),
+  `/admin/login` verified 200 via both backend nginx and the panel proxy; protected endpoints
+  (dashboard, logs) verified 200 with the admin JWT. Nginx issues found on first deploy and
+  fixed in-repo: `envsubst` scoped to `$BACKEND_ORIGIN` (bare envsubst clobbered nginx `$vars`),
+  healthcheck targets `127.0.0.1` (`localhost` resolves to `::1` inside the container). Backend
+  celery worker recovered from a Compose-v5 interpolation bug (shell `$vars` need `\$\$`
+  escaping; backend commit `6d99727`) — all containers healthy. Panel login:
+  `admin` / password from `/tmp/admin_pw.txt` on the dev machine.

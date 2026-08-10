@@ -15,20 +15,83 @@ export interface AdminLoginResult {
 }
 
 // ---- Users ----
+export interface AdminUserPhoto {
+  id: string;
+  url: string;
+  is_main: boolean;
+  status: string;
+  reject_reason?: string | null;
+  face_verified: boolean;
+  order: number;
+  created_at?: string | null;
+}
+
 export interface AdminUser {
+  // Account / UID
   id: string;
   email: string;
-  name: string;
-  age: number;
-  gender: string;
-  is_active: boolean;
-  is_premium: boolean;
-  premium_until?: string | null;
+  phone?: string | null;
   phone_verified: boolean;
+  google_id?: string | null;
+  referral_code?: string | null;
+  referred_by?: string | null;
+  registration_status?: string | null;
+  token_version?: number | null;
+  is_active: boolean;
   created_at: string;
   last_seen_at?: string | null;
+
+  // Profile / identity
+  name: string;
+  birth_date?: string | null;
+  age: number;
+  gender?: string | null;
+  sexual_orientation?: string | null;
+  bio?: string | null;
+
+  // Appearance
+  height?: number | null;
+  weight?: number | null;
+  body_type?: string | null;
+
+  // Lifestyle
+  relationship_status?: string | null;
+  living_situation?: string | null;
+  children_status?: string | null;
+  smoking?: string | null;
+  drinking?: string | null;
+
+  // Background
+  languages?: string[] | null;
+  education?: string | null;
+  workplace?: string | null;
+  religion?: string | null;
+  ethnicity?: string | null;
+  political_orientation?: string | null;
+
+  // Location
+  lat?: number | null;
+  lng?: number | null;
+  country?: string | null;
+  province?: string | null;
+  city?: string | null;
+  location_manual?: boolean | null;
+
+  // Verification / premium
+  is_verified?: boolean | null;
+  verified_at?: string | null;
+  is_premium: boolean;
+  premium_until?: string | null;
+
+  // Settings
   hide_last_seen: boolean;
   hide_online_status: boolean;
+
+  // Relations
+  interests?: string[] | null;
+  photos?: AdminUserPhoto[] | null;
+
+  // Stats
   total_likes_sent?: number | null;
   total_matches?: number | null;
   total_messages?: number | null;

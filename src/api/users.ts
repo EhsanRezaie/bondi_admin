@@ -8,8 +8,14 @@ import type {
 
 export interface UserQuery {
   search?: string;
+  id?: string;
   is_active?: boolean;
   is_premium?: boolean;
+  is_verified?: boolean;
+  gender?: string;
+  city?: string;
+  age_min?: number;
+  age_max?: number;
   limit: number;
   offset: number;
 }

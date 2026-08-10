@@ -1,0 +1,22 @@
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bondi_admin
+    restart: unless-stopped
+    ports:
+      - "8443:80"
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+    environment:
+      # Where to proxy /api/v1 requests to. On the Bondi VPS the backend
+      # nginx listens on the host's port 80; the docker bridge gateway is the
+      # host itself. Override in .env when the panel is hosted elsewhere.
+      BACKEND_ORIGIN: ${BACKEND_ORIGIN:-http://172.17.0.1:80}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s

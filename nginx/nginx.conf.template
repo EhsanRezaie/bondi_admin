@@ -1,0 +1,46 @@
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+  sendfile on;
+  keepalive_timeout 65;
+  gzip on;
+  gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+
+  # Admin API is NOT exposed to the outside world. The SPA is served on 8443
+  # only, and /api/v1 requests are proxied to the backend origin.
+  server {
+    listen 80;
+    server_name _;
+
+    client_max_body_size 20m;
+
+    location /api/v1/ {
+      proxy_pass ${BACKEND_ORIGIN};
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_connect_timeout 10s;
+      proxy_read_timeout 60s;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2?)$ {
+      root /usr/share/nginx/html;
+      expires 7d;
+      add_header Cache-Control "public, max-age=604800";
+      try_files $uri =404;
+    }
+
+    location / {
+      root /usr/share/nginx/html;
+      try_files $uri $uri/ /index.html;
+    }
+  }
+}

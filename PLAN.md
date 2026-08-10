@@ -244,3 +244,17 @@ The panel does **not** depend on the backend's nginx, compose, or deploy files.
   envsubst entrypoint), `docker-compose.yml` (port **8443**, `./dist` volume mount),
   `.env.example`, and own `.github/workflows/deploy.yml` (install → typecheck → build →
   scp → `docker compose up -d --build`). Pages beyond Dashboard are placeholders pending M3/M4.
+- **M3 (feature pages, this repo):** Users (list + search/active/premium filters + pagination;
+  detail drawer with activity chart, activate/deactivate, grant premium, send notification,
+  delete), Photo moderation (pending queue with preview + stats, approve/reject-with-reason/
+  verify-face, load more), Reports (status filter + detail drawer + status/note update + delete),
+  Tickets (status filter + pagination; detail drawer + respond/close/in-progress + delete).
+  Dashboard rewired to the real `/admin/dashboard` shapes (KPI cards + user-growth/activity
+  charts + report/ticket status stats).
+- **M4 (remaining pages, this repo):** Announcements (broadcast all/premium-only + single-user
+  test sender), Audit log (admin/action/target-type/target-ID/date-range filters + pagination),
+  System (maintenance enable-with-message/disable/status + version control: set min android/ios,
+  force-update toggle + message, clear overrides), Messages (decrypt via message ID + delete for
+  everyone + view reported message by report ID). Route-level code-splitting (each page is a lazy
+  chunk; initial bundle ~775 kB / 251 kB gzip). All pages hit the exact backend shapes mapped in
+  `src/api/types.ts`.

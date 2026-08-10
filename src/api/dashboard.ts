@@ -1,19 +1,37 @@
 import { client } from './client';
-import type { AdminDashboardOverview, UserStatsPoint } from './types';
+import type {
+  DashboardOverview,
+  TimeSeriesResponse,
+  ActivitySeriesResponse,
+  ReportStatsResponse,
+  TicketStatsResponse
+} from './types';
 
-export async function fetchOverview(): Promise<AdminDashboardOverview> {
-  const { data } = await client.get<AdminDashboardOverview>('/admin/dashboard/overview');
+export async function fetchOverview(): Promise<DashboardOverview> {
+  const { data } = await client.get<DashboardOverview>('/admin/dashboard');
   return data;
 }
 
-export async function fetchUserStats(days = 14): Promise<UserStatsPoint[]> {
-  const { data } = await client.get<{ items: UserStatsPoint[] }>('/admin/dashboard/stats/users', {
+export async function fetchUserGrowth(days = 14): Promise<TimeSeriesResponse> {
+  const { data } = await client.get<TimeSeriesResponse>('/admin/dashboard/stats/users', {
     params: { days }
   });
-  return data.items;
+  return data;
 }
 
-export async function fetchActivityFeed(): Promise<unknown[]> {
-  const { data } = await client.get<{ items: unknown[] }>('/admin/dashboard/activity/recent');
-  return data.items;
+export async function fetchActivityStats(days = 14): Promise<ActivitySeriesResponse> {
+  const { data } = await client.get<ActivitySeriesResponse>('/admin/dashboard/stats/activity', {
+    params: { days }
+  });
+  return data;
+}
+
+export async function fetchReportStats(): Promise<ReportStatsResponse> {
+  const { data } = await client.get<ReportStatsResponse>('/admin/dashboard/stats/reports');
+  return data;
+}
+
+export async function fetchTicketStats(): Promise<TicketStatsResponse> {
+  const { data } = await client.get<TicketStatsResponse>('/admin/dashboard/stats/tickets');
+  return data;
 }

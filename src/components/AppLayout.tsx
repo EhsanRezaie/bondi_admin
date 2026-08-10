@@ -6,6 +6,7 @@ import {
   WarningOutlined,
   MessageOutlined,
   NotificationOutlined,
+  CommentOutlined,
   FileSearchOutlined,
   ToolOutlined,
   LogoutOutlined
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { key: '/reports', icon: <WarningOutlined />, label: 'Reports' },
   { key: '/tickets', icon: <MessageOutlined />, label: 'Tickets' },
   { key: '/announcements', icon: <NotificationOutlined />, label: 'Announcements' },
+  { key: '/messages', icon: <CommentOutlined />, label: 'Messages' },
   { key: '/logs', icon: <FileSearchOutlined />, label: 'Audit Logs' },
   { key: '/system', icon: <ToolOutlined />, label: 'System' }
 ];

@@ -200,7 +200,7 @@ export function TicketsPage() {
         onChange={(p) => setPage(p.current ?? 1)}
         columns={[
           { title: 'Subject', dataIndex: 'subject', render: (v: string, r) => <a onClick={() => openDetail(r)}>{v}</a> },
-          { title: 'Message', dataIndex: 'message', ellipsis: true },
+          { title: 'Message', dataIndex: 'message', ellipsis: true, render: (_v: string, r) => r.last_message ?? r.message },
           {
             title: 'Status',
             dataIndex: 'status',
@@ -233,7 +233,7 @@ export function TicketsPage() {
         {detail && (
           <>
             <Descriptions bordered size="small" column={1}>
-              <Descriptions.Item label="User">{detail.user_name} ({detail.user_email})</Descriptions.Item>
+              <Descriptions.Item label="User UID">{detail.user_uid}</Descriptions.Item>
               <Descriptions.Item label="Subject">{detail.subject}</Descriptions.Item>
               <Descriptions.Item label="Message">{detail.message}</Descriptions.Item>
               <Descriptions.Item label="Status"><Tag color={STATUS_COLORS[detail.status] ?? 'default'}>{detail.status}</Tag></Descriptions.Item>

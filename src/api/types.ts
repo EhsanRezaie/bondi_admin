@@ -173,8 +173,10 @@ export interface AdminReport {
 export interface AdminTicket {
   id: string;
   user_id: string;
+  user_uid: string;
   subject: string;
   message: string;
+  last_message?: string | null;
   status: string; // open | in_progress | closed
   admin_response?: string | null;
   created_at: string;

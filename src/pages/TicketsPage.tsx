@@ -14,10 +14,10 @@ import {
   message
 } from 'antd';
 import { ReloadOutlined, DeleteOutlined, SendOutlined } from '@ant-design/icons';
-import { fetchTickets, fetchTicket, updateTicket, deleteTicket } from '../api/tickets';
+import { fetchTickets, fetchTicket, updateTicket, replyTicket, deleteTicket } from '../api/tickets';
 import { apiErrorMessage } from '../api/client';
 import { formatDate } from '../utils/format';
-import type { AdminTicket, AdminTicketDetail } from '../api/types';
+import type { AdminTicket, AdminTicketDetail, AdminTicketMessage } from '../api/types';
 
 const PAGE_SIZE = 30;
 const STATUS_COLORS: Record<string, string> = {
@@ -60,7 +60,6 @@ export function TicketsPage() {
     try {
       const fresh = await fetchTicket(ticket.id);
       setDetail(fresh);
-      responseForm.setFieldsValue({ admin_response: fresh.admin_response ?? undefined });
     } catch (error) {
       message.error(apiErrorMessage(error, 'Failed to load ticket.'));
     } finally {
@@ -68,15 +67,16 @@ export function TicketsPage() {
     }
   };
 
-  const onRespond = async (values: { admin_response: string }) => {
+  const onRespond = async (values: { reply: string }) => {
     if (!detail) return;
     try {
-      const updated = await updateTicket(detail.id, { admin_response: values.admin_response });
+      const updated = await replyTicket(detail.id, values.reply);
       setDetail(updated);
       setItems((prev) => prev.map((t) => (t.id === detail.id ? updated : t)));
-      message.success('Response saved');
+      responseForm.resetFields();
+      message.success('Reply sent');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Save failed.'));
+      message.error(apiErrorMessage(error, 'Send failed.'));
     }
   };
 
@@ -101,6 +101,62 @@ export function TicketsPage() {
     } catch (error) {
       message.error(apiErrorMessage(error, 'Delete failed.'));
     }
+  };
+
+  const renderConversation = () => {
+    const messages: AdminTicketMessage[] = detail?.messages ?? [];
+    const thread = messages.length > 0 ? messages : (
+      detail?.admin_response
+        ? [{ id: 'legacy', sender_type: 'admin' as const, content: detail.admin_response, created_at: detail.updated_at ?? detail.created_at }]
+        : []
+    );
+
+    if (thread.length === 0) {
+      return (
+        <div style={{ marginTop: 16, padding: 12, color: '#888', textAlign: 'center', background: '#fafafa', borderRadius: 8 }}>
+          No messages yet — send the first reply.
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          marginTop: 16,
+          maxHeight: 320,
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          padding: 4
+        }}
+      >
+        {thread.map((m, i) => {
+          const isAdmin = m.sender_type === 'admin';
+          return (
+            <div
+              key={m.id ?? `msg-${i}`}
+              style={{ display: 'flex', justifyContent: isAdmin ? 'flex-start' : 'flex-end' }}
+            >
+              <div
+                style={{
+                  maxWidth: '80%',
+                  padding: '8px 12px',
+                  borderRadius: 12,
+                  background: isAdmin ? '#f5f5f5' : '#e6f4ff',
+                  border: isAdmin ? '1px solid #eee' : '1px solid #91caff'
+                }}
+              >
+                <div style={{ fontSize: 11, color: '#888', marginBottom: 2 }}>
+                  {isAdmin ? 'Admin' : 'User'} · {formatDate(m.created_at)}
+                </div>
+                <div style={{ whiteSpace: 'pre-wrap' }}>{m.content}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -185,18 +241,14 @@ export function TicketsPage() {
               <Descriptions.Item label="Updated">{formatDate(detail.updated_at)}</Descriptions.Item>
             </Descriptions>
 
-            {detail.admin_response && (
-              <Card size="small" title="Current admin response" style={{ marginTop: 16 }}>
-                <div style={{ whiteSpace: 'pre-wrap' }}>{detail.admin_response}</div>
-              </Card>
-            )}
+            {renderConversation()}
 
             <Form form={responseForm} layout="vertical" style={{ marginTop: 16 }} onFinish={onRespond}>
-              <Form.Item name="admin_response" label="Admin response" rules={[{ required: true, message: 'Response required' }]}>
-                <Input.TextArea rows={5} maxLength={2000} showCount placeholder="Write a reply to the user…" />
+              <Form.Item name="reply" label="Reply" rules={[{ required: true, message: 'Reply required' }]}>
+                <Input.TextArea rows={4} maxLength={2000} showCount placeholder="Write a reply to the user…" />
               </Form.Item>
               <Space>
-                <Button type="primary" htmlType="submit" icon={<SendOutlined />}>Send response</Button>
+                <Button type="primary" htmlType="submit" icon={<SendOutlined />}>Send reply</Button>
                 {detail.status !== 'in_progress' && (
                   <Button onClick={() => setStatus('in_progress')}>Mark in progress</Button>
                 )}

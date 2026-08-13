@@ -181,9 +181,18 @@ export interface AdminTicket {
   updated_at?: string | null;
 }
 
+export interface AdminTicketMessage {
+  id: string;
+  sender_type: 'user' | 'admin';
+  admin_name?: string | null;
+  content: string;
+  created_at: string;
+}
+
 export interface AdminTicketDetail extends AdminTicket {
   user_name: string;
   user_email: string;
+  messages?: AdminTicketMessage[] | null;
 }
 
 export interface AdminTicketListResponse {

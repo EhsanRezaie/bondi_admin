@@ -17,6 +17,11 @@ export async function fetchTicket(id: string): Promise<AdminTicketDetail> {
   return data;
 }
 
+export async function replyTicket(id: string, content: string): Promise<AdminTicketDetail> {
+  const { data } = await client.post<AdminTicketDetail>(`/admin/tickets/${id}/messages`, { content });
+  return data;
+}
+
 export async function updateTicket(
   id: string,
   body: { status?: string; admin_response?: string }

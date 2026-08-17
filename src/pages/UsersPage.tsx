@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Descriptions,
+  Divider,
   Drawer,
   Form,
   Image,
@@ -14,6 +15,7 @@ import {
   Space,
   Table,
   Tag,
+  Typography,
   message
 } from 'antd';
 import {
@@ -126,6 +128,26 @@ const OPTIONS = {
 
 const SELECT_OPTIONS = (key: keyof typeof OPTIONS) =>
   OPTIONS[key].map((v) => ({ value: v, label: v.replace(/_/g, ' ') }));
+
+const BOOL_OPTIONS = [
+  { value: true, label: 'Yes' },
+  { value: false, label: 'No' }
+];
+
+function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <Divider orientation="left" style={{ margin: '8px 0 16px', fontSize: 13 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 13, fontWeight: 600, letterSpacing: 0.3 }}>
+          {title}
+        </Typography.Text>
+      </Divider>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16, rowGap: 0 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function filterCount(f: Filters): number {
   return Object.values(f).filter((v) => v !== undefined && v !== '' && v !== null).length;
@@ -619,13 +641,22 @@ export function UsersPage() {
       </Drawer>
 
       <Modal
-        title="Filter users"
+        title={
+          <Space>
+            <FilterOutlined />
+            Filter users
+            {filterCount(filters) > 0 && (
+              <Tag color="#7b2ff7" style={{ marginInlineStart: 4 }}>
+                {filterCount(filters)} active
+              </Tag>
+            )}
+          </Space>
+        }
         open={filterOpen}
-        width={720}
-        onOk={() => filterForm.submit()}
+        width={760}
         onCancel={() => setFilterOpen(false)}
         footer={[
-          <Button key="reset" icon={<CloseOutlined />} onClick={resetFilters}>
+          <Button key="reset" icon={<CloseOutlined />} onClick={resetFilters} disabled={filterCount(filters) === 0}>
             Reset all
           </Button>,
           <Button key="cancel" onClick={() => setFilterOpen(false)}>
@@ -636,67 +667,52 @@ export function UsersPage() {
           </Button>
         ]}
       >
-        <Form form={filterForm} layout="vertical" onFinish={applyFilter}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16 }}>
+        <Form form={filterForm} layout="vertical" onFinish={applyFilter} style={{ marginTop: 4 }}>
+          <FilterSection title="Account & status">
             <Form.Item name="uid" label="UID">
               <Input allowClear placeholder="Exact user UID" />
+            </Form.Item>
+            <Form.Item name="is_active" label="Status">
+              <Select allowClear options={[
+                { value: true, label: 'Active' },
+                { value: false, label: 'Inactive' }
+              ]} />
+            </Form.Item>
+            <Form.Item name="is_premium" label="Subscription">
+              <Select allowClear options={[
+                { value: true, label: 'Premium' },
+                { value: false, label: 'Free' }
+              ]} />
+            </Form.Item>
+            <Form.Item name="is_verified" label="Verified">
+              <Select allowClear options={BOOL_OPTIONS} />
+            </Form.Item>
+            <Form.Item name="has_photos" label="Photos">
+              <Select allowClear options={BOOL_OPTIONS} />
             </Form.Item>
             <Form.Item name="gender" label="Gender">
               <Select allowClear options={SELECT_OPTIONS('gender')} />
             </Form.Item>
-            <Form.Item name="is_active" label="Status">
-              <Select
-                allowClear
-                options={[
-                  { value: true, label: 'Active' },
-                  { value: false, label: 'Inactive' }
-                ]}
-              />
+          </FilterSection>
+
+          <FilterSection title="Age & body">
+            <Form.Item name="age_min" label="Age from">
+              <InputNumber min={18} max={120} placeholder="18" style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item name="is_premium" label="Subscription">
-              <Select
-                allowClear
-                options={[
-                  { value: true, label: 'Premium' },
-                  { value: false, label: 'Free' }
-                ]}
-              />
+            <Form.Item name="age_max" label="Age to">
+              <InputNumber min={18} max={120} placeholder="120" style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item name="is_verified" label="Verified">
-              <Select
-                allowClear
-                options={[
-                  { value: true, label: 'Verified' },
-                  { value: false, label: 'Unverified' }
-                ]}
-              />
+            <Form.Item name="height_min" label="Height from (cm)">
+              <InputNumber min={50} max={250} placeholder="50" style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item name="has_photos" label="Photos">
-              <Select
-                allowClear
-                options={[
-                  { value: true, label: 'Has approved photos' },
-                  { value: false, label: 'No approved photos' }
-                ]}
-              />
+            <Form.Item name="height_max" label="Height to (cm)">
+              <InputNumber min={50} max={250} placeholder="250" style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item name="age_min" label="Age min">
-              <InputNumber min={18} max={120} style={{ width: '100%' }} />
+            <Form.Item name="weight_min" label="Weight from (kg)">
+              <InputNumber min={30} max={300} placeholder="30" style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item name="age_max" label="Age max">
-              <InputNumber min={18} max={120} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="height_min" label="Height min (cm)">
-              <InputNumber min={50} max={250} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="height_max" label="Height max (cm)">
-              <InputNumber min={50} max={250} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="weight_min" label="Weight min (kg)">
-              <InputNumber min={30} max={300} style={{ width: '100%' }} />
-            </Form.Item>
-            <Form.Item name="weight_max" label="Weight max (kg)">
-              <InputNumber min={30} max={300} style={{ width: '100%' }} />
+            <Form.Item name="weight_max" label="Weight to (kg)">
+              <InputNumber min={30} max={300} placeholder="300" style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item name="body_type" label="Body type">
               <Select allowClear options={SELECT_OPTIONS('body_type')} />
@@ -704,6 +720,15 @@ export function UsersPage() {
             <Form.Item name="relationship_status" label="Relationship status">
               <Select allowClear options={SELECT_OPTIONS('relationship_status')} />
             </Form.Item>
+            <Form.Item name="smoking" label="Smoking">
+              <Select allowClear options={SELECT_OPTIONS('smoking')} />
+            </Form.Item>
+            <Form.Item name="drinking" label="Drinking">
+              <Select allowClear options={SELECT_OPTIONS('drinking')} />
+            </Form.Item>
+          </FilterSection>
+
+          <FilterSection title="Background">
             <Form.Item name="education" label="Education">
               <Select allowClear options={SELECT_OPTIONS('education')} />
             </Form.Item>
@@ -716,12 +741,15 @@ export function UsersPage() {
             <Form.Item name="political_orientation" label="Political orientation">
               <Select allowClear options={SELECT_OPTIONS('political_orientation')} />
             </Form.Item>
-            <Form.Item name="smoking" label="Smoking">
-              <Select allowClear options={SELECT_OPTIONS('smoking')} />
+            <Form.Item name="languages" label="Languages">
+              <Input allowClear placeholder="e.g. english,persian" />
             </Form.Item>
-            <Form.Item name="drinking" label="Drinking">
-              <Select allowClear options={SELECT_OPTIONS('drinking')} />
+            <Form.Item name="interests" label="Interests">
+              <Input allowClear placeholder="Comma-separated" />
             </Form.Item>
+          </FilterSection>
+
+          <FilterSection title="Location">
             <Form.Item name="city" label="City">
               <Input allowClear placeholder="Contains" />
             </Form.Item>
@@ -731,13 +759,7 @@ export function UsersPage() {
             <Form.Item name="province" label="Province">
               <Input allowClear placeholder="Contains" />
             </Form.Item>
-            <Form.Item name="languages" label="Languages">
-              <Input allowClear placeholder="Comma-separated, e.g. english,persian" />
-            </Form.Item>
-            <Form.Item name="interests" label="Interests">
-              <Input allowClear placeholder="Comma-separated" />
-            </Form.Item>
-          </div>
+          </FilterSection>
         </Form>
       </Modal>
 

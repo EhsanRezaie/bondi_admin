@@ -98,8 +98,29 @@ export interface AdminUser {
   report_count?: number | null;
 }
 
+export interface AdminUserListItem {
+  id: string;
+  email: string;
+  phone?: string | null;
+  phone_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  last_seen_at?: string | null;
+
+  name: string;
+  age: number;
+  gender?: string | null;
+  city?: string | null;
+  country?: string | null;
+  province?: string | null;
+
+  is_verified?: boolean | null;
+  is_premium: boolean;
+  premium_until?: string | null;
+}
+
 export interface AdminUserListResponse {
-  users: AdminUser[];
+  users: AdminUserListItem[];
   total: number;
   next_offset?: number | null;
 }

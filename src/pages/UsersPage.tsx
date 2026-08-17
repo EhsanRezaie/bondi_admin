@@ -23,7 +23,9 @@ import {
   SafetyOutlined,
   StopOutlined,
   DeleteOutlined,
-  SendOutlined
+  SendOutlined,
+  FilterOutlined,
+  CloseOutlined
 } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
 import {
@@ -45,9 +47,10 @@ import {
   fetchUserActivity,
   sendUserMessage
 } from '../api/users';
+import type { UserQuery } from '../api/users';
 import { apiErrorMessage } from '../api/client';
 import { formatDate, formatDateOnly } from '../utils/format';
-import type { AdminUser, AdminUserPhoto, UserActivityEntry } from '../api/types';
+import type { AdminUser, AdminUserPhoto, AdminUserListItem, UserActivityEntry } from '../api/types';
 
 interface Filters {
   search: string;
@@ -56,30 +59,89 @@ interface Filters {
   is_premium?: boolean;
   is_verified?: boolean;
   gender?: string;
-  city: string;
+  city?: string;
+  country?: string;
+  province?: string;
   age_min?: number;
   age_max?: number;
+  height_min?: number;
+  height_max?: number;
+  weight_min?: number;
+  weight_max?: number;
+  body_type?: string;
+  relationship_status?: string;
+  education?: string;
+  religion?: string;
+  ethnicity?: string;
+  political_orientation?: string;
+  smoking?: string;
+  drinking?: string;
+  languages?: string;
+  interests?: string;
+  has_photos?: boolean;
 }
 
 const PAGE_SIZE = 20;
 
+const EMPTY_FILTERS: Filters = {
+  search: '',
+  uid: '',
+  is_active: undefined,
+  is_premium: undefined,
+  is_verified: undefined,
+  gender: undefined,
+  city: undefined,
+  country: undefined,
+  province: undefined,
+  age_min: undefined,
+  age_max: undefined,
+  height_min: undefined,
+  height_max: undefined,
+  weight_min: undefined,
+  weight_max: undefined,
+  body_type: undefined,
+  relationship_status: undefined,
+  education: undefined,
+  religion: undefined,
+  ethnicity: undefined,
+  political_orientation: undefined,
+  smoking: undefined,
+  drinking: undefined,
+  languages: undefined,
+  interests: undefined,
+  has_photos: undefined
+};
+
+const OPTIONS = {
+  gender: ['male', 'female'],
+  body_type: ['slim', 'athletic', 'average', 'curvy', 'muscular', 'overweight'],
+  relationship_status: ['single', 'divorced', 'separated', 'widowed'],
+  education: ['high_school', 'associate', 'bachelor', 'master', 'phd'],
+  religion: ["islam", 'christianity', "baha'i", 'zoroastrian', 'none'],
+  ethnicity: ['persian', 'kurdish', 'lor', 'turk', 'arab', 'baloch', 'gilak', 'mazani'],
+  political_orientation: ['liberal', 'conservative', 'moderate', 'apolitical'],
+  smoking: ['never', 'occasionally', 'regularly'],
+  drinking: ['never', 'socially', 'regularly']
+} as const;
+
+const SELECT_OPTIONS = (key: keyof typeof OPTIONS) =>
+  OPTIONS[key].map((v) => ({ value: v, label: v.replace(/_/g, ' ') }));
+
+function filterCount(f: Filters): number {
+  return Object.values(f).filter((v) => v !== undefined && v !== '' && v !== null).length;
+}
+
 export function UsersPage() {
-  const [items, setItems] = useState<AdminUser[]>([]);
+  const [items, setItems] = useState<AdminUserListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<Filters>({
-    search: '',
-    uid: '',
-    is_active: undefined,
-    is_premium: undefined,
-    is_verified: undefined,
-    gender: undefined,
-    city: '',
-    age_min: undefined,
-    age_max: undefined
-  });
+  const [sortBy, setSortBy] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filters, setFilters] = useState<Filters>({ ...EMPTY_FILTERS });
   const [applyHint, setApplyHint] = useState(0);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterForm] = Form.useForm();
 
   const [detail, setDetail] = useState<AdminUser | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -93,22 +155,42 @@ export function UsersPage() {
   const [messageForm] = Form.useForm();
   const [messageSubmitting, setMessageSubmitting] = useState(false);
 
-  const load = useCallback(async (p = page, f = filters) => {
+  const load = useCallback(async (p = page, f = filters, sb = sortBy, so = sortOrder) => {
     setLoading(true);
     try {
-      const res = await fetchUsers({
+      const params: UserQuery = {
         search: f.search || undefined,
         id: f.uid || undefined,
         is_active: f.is_active,
         is_premium: f.is_premium,
         is_verified: f.is_verified,
         gender: f.gender,
-        city: f.city || undefined,
+        city: f.city,
+        country: f.country,
+        province: f.province,
         age_min: f.age_min,
         age_max: f.age_max,
+        height_min: f.height_min,
+        height_max: f.height_max,
+        weight_min: f.weight_min,
+        weight_max: f.weight_max,
+        body_type: f.body_type,
+        relationship_status: f.relationship_status,
+        education: f.education,
+        religion: f.religion,
+        ethnicity: f.ethnicity,
+        political_orientation: f.political_orientation,
+        smoking: f.smoking,
+        drinking: f.drinking,
+        languages: f.languages,
+        interests: f.interests,
+        has_photos: f.has_photos,
+        sort_by: sb,
+        sort_order: so,
         limit: PAGE_SIZE,
         offset: (p - 1) * PAGE_SIZE
-      });
+      };
+      const res = await fetchUsers(params);
       setItems(res.users);
       setTotal(res.total);
     } catch (error) {
@@ -116,12 +198,12 @@ export function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filters]);
+  }, [page, filters, sortBy, sortOrder]);
 
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, applyHint]);
+  }, [page, sortBy, sortOrder, applyHint]);
 
   const openDetail = async (id: string) => {
     setDetailLoading(true);
@@ -134,6 +216,43 @@ export function UsersPage() {
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  const onSearch = (value: string) => {
+    setFilters((prev) => ({ ...prev, search: value }));
+    setPage(1);
+    setApplyHint((n) => n + 1);
+  };
+
+  const openFilter = () => {
+    filterForm.setFieldsValue(filters);
+    setFilterOpen(true);
+  };
+
+  const applyFilter = (values: Filters) => {
+    const cleaned: Filters = { search: filters.search, uid: values.uid };
+    const keys: (keyof Filters)[] = [
+      'is_active', 'is_premium', 'is_verified', 'gender', 'city', 'country', 'province',
+      'age_min', 'age_max', 'height_min', 'height_max', 'weight_min', 'weight_max',
+      'body_type', 'relationship_status', 'education', 'religion', 'ethnicity',
+      'political_orientation', 'smoking', 'drinking', 'languages', 'interests', 'has_photos'
+    ];
+    for (const k of keys) {
+      const v = values[k];
+      cleaned[k] = v === undefined || v === '' || v === null ? undefined : (v as never);
+    }
+    setFilters(cleaned);
+    setPage(1);
+    setFilterOpen(false);
+    setApplyHint((n) => n + 1);
+  };
+
+  const resetFilters = () => {
+    setFilters({ ...EMPTY_FILTERS });
+    filterForm.resetFields();
+    setPage(1);
+    setFilterOpen(false);
+    setApplyHint((n) => n + 1);
   };
 
   const toggleActive = async (id: string, isActive: boolean) => {
@@ -196,82 +315,31 @@ export function UsersPage() {
       title="Users"
       extra={
         <Space>
-          <Form
-            layout="inline"
-            onFinish={() => {
-              setPage(1);
-              setApplyHint((n) => n + 1);
-            }}
+          <Input.Search
+            placeholder="Name, email, phone, bio"
+            allowClear
+            style={{ width: 260 }}
+            defaultValue={filters.search}
+            onSearch={onSearch}
+          />
+          <Button
+            icon={<FilterOutlined />}
+            onClick={openFilter}
+            style={filterCount(filters) > 1 ? { borderColor: '#7b2ff7', color: '#7b2ff7' } : undefined}
           >
-            <Form.Item name="search" initialValue={filters.search}>
-              <Input prefix={<SearchOutlined />} placeholder="Name, email, phone, bio" allowClear style={{ width: 200 }} />
-            </Form.Item>
-            <Form.Item name="uid" initialValue={filters.uid}>
-              <Input prefix={<SearchOutlined />} placeholder="UID" allowClear style={{ width: 220 }} />
-            </Form.Item>
-            <Form.Item name="is_active">
-              <Select placeholder="Status" allowClear style={{ width: 110 }}>
-                <Select.Option value={true}>Active</Select.Option>
-                <Select.Option value={false}>Inactive</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="is_premium">
-              <Select placeholder="Subscription" allowClear style={{ width: 120 }}>
-                <Select.Option value={true}>Premium</Select.Option>
-                <Select.Option value={false}>Free</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="is_verified">
-              <Select placeholder="Verified" allowClear style={{ width: 110 }}>
-                <Select.Option value={true}>Verified</Select.Option>
-                <Select.Option value={false}>Unverified</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="gender">
-              <Select placeholder="Gender" allowClear style={{ width: 110 }}>
-                <Select.Option value="male">Male</Select.Option>
-                <Select.Option value="female">Female</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="city" initialValue={filters.city}>
-              <Input placeholder="City" allowClear style={{ width: 110 }} />
-            </Form.Item>
-            <Form.Item name="age_min">
-              <InputNumber placeholder="Age min" min={18} max={120} style={{ width: 100 }} />
-            </Form.Item>
-            <Form.Item name="age_max">
-              <InputNumber placeholder="Age max" min={18} max={120} style={{ width: 100 }} />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                Filter
-              </Button>
-            </Form.Item>
-          </Form>
+            Filter{filters.search ? '' : filterCount(filters) > 0 ? ` (${filterCount(filters)})` : ''}
+          </Button>
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => {
-              setPage(1);
-              setFilters({
-                search: '',
-                uid: '',
-                is_active: undefined,
-                is_premium: undefined,
-                is_verified: undefined,
-                gender: undefined,
-                city: '',
-                age_min: undefined,
-                age_max: undefined
-              });
-              setApplyHint((n) => n + 1);
-            }}
+            onClick={resetFilters}
+            disabled={filterCount(filters) === 0 && !filters.search}
           >
             Reset
           </Button>
         </Space>
       }
     >
-      <Table<AdminUser>
+      <Table<AdminUserListItem>
         rowKey="id"
         dataSource={items}
         loading={loading}
@@ -283,38 +351,69 @@ export function UsersPage() {
           showSizeChanger: false,
           showTotal: (t) => `${t} users`
         }}
-        onChange={(p: TablePaginationConfig) => {
+        onChange={(p: TablePaginationConfig, _f, sorter: any) => {
           setPage(p.current ?? 1);
+          if (sorter && sorter.field) {
+            if (sorter.order === undefined) {
+              setSortBy('created_at');
+              setSortOrder('desc');
+            } else {
+              setSortBy(sorter.field);
+              setSortOrder(sorter.order === 'ascend' ? 'asc' : 'desc');
+            }
+          }
         }}
         columns={[
           {
             title: 'UID',
             dataIndex: 'id',
             width: 90,
+            sorter: true,
             render: (v: string, r) => (
               <a onClick={() => openDetail(r.id)}>
                 <code style={{ fontSize: 12 }}>{v.slice(0, 8)}</code>
               </a>
             )
           },
-          { title: 'Name', dataIndex: 'name', render: (v: string, r) => <a onClick={() => openDetail(r.id)}>{v || '—'}</a> },
-          { title: 'Email', dataIndex: 'email' },
-          { title: 'Age', dataIndex: 'age', width: 70 },
-          { title: 'Gender', dataIndex: 'gender', width: 100 },
+          {
+            title: 'Name',
+            dataIndex: 'name',
+            sorter: true,
+            render: (v: string, r) => <a onClick={() => openDetail(r.id)}>{v || '—'}</a>
+          },
+          { title: 'Email', dataIndex: 'email', sorter: true },
+          { title: 'Age', dataIndex: 'age', width: 70, sorter: true },
+          { title: 'Gender', dataIndex: 'gender', width: 100, sorter: true },
+          { title: 'City', dataIndex: 'city', width: 120, sorter: true, render: (v?: string) => v || '—' },
           {
             title: 'Status',
             dataIndex: 'is_active',
             width: 100,
+            sorter: true,
             render: (v: boolean) => <Tag color={v ? 'green' : 'red'}>{v ? 'Active' : 'Inactive'}</Tag>
           },
           {
             title: 'Premium',
             dataIndex: 'is_premium',
             width: 110,
+            sorter: true,
             render: (v: boolean) => (v ? <Tag color="gold"><CrownOutlined /> Premium</Tag> : <Tag>Free</Tag>)
           },
-          { title: 'Verified', dataIndex: 'phone_verified', width: 100, render: (v: boolean) => (v ? 'Yes' : 'No') },
-          { title: 'Joined', dataIndex: 'created_at', width: 150, render: (v: string) => formatDate(v) }
+          {
+            title: 'Verified',
+            dataIndex: 'is_verified',
+            width: 100,
+            sorter: true,
+            render: (v?: boolean) => (v ? <Tag color="blue">Verified</Tag> : 'No')
+          },
+          {
+            title: 'Joined',
+            dataIndex: 'created_at',
+            width: 150,
+            sorter: true,
+            defaultSortOrder: 'descend' as const,
+            render: (v: string) => formatDate(v)
+          }
         ]}
       />
 
@@ -501,6 +600,129 @@ export function UsersPage() {
           </>
         )}
       </Drawer>
+
+      <Modal
+        title="Filter users"
+        open={filterOpen}
+        width={720}
+        onOk={() => filterForm.submit()}
+        onCancel={() => setFilterOpen(false)}
+        footer={[
+          <Button key="reset" icon={<CloseOutlined />} onClick={resetFilters}>
+            Reset all
+          </Button>,
+          <Button key="cancel" onClick={() => setFilterOpen(false)}>
+            Cancel
+          </Button>,
+          <Button key="apply" type="primary" icon={<SearchOutlined />} onClick={() => filterForm.submit()}>
+            Apply filters
+          </Button>
+        ]}
+      >
+        <Form form={filterForm} layout="vertical" onFinish={applyFilter}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', columnGap: 16 }}>
+            <Form.Item name="uid" label="UID">
+              <Input allowClear placeholder="Exact user UID" />
+            </Form.Item>
+            <Form.Item name="gender" label="Gender">
+              <Select allowClear options={SELECT_OPTIONS('gender')} />
+            </Form.Item>
+            <Form.Item name="is_active" label="Status">
+              <Select
+                allowClear
+                options={[
+                  { value: true, label: 'Active' },
+                  { value: false, label: 'Inactive' }
+                ]}
+              />
+            </Form.Item>
+            <Form.Item name="is_premium" label="Subscription">
+              <Select
+                allowClear
+                options={[
+                  { value: true, label: 'Premium' },
+                  { value: false, label: 'Free' }
+                ]}
+              />
+            </Form.Item>
+            <Form.Item name="is_verified" label="Verified">
+              <Select
+                allowClear
+                options={[
+                  { value: true, label: 'Verified' },
+                  { value: false, label: 'Unverified' }
+                ]}
+              />
+            </Form.Item>
+            <Form.Item name="has_photos" label="Photos">
+              <Select
+                allowClear
+                options={[
+                  { value: true, label: 'Has approved photos' },
+                  { value: false, label: 'No approved photos' }
+                ]}
+              />
+            </Form.Item>
+            <Form.Item name="age_min" label="Age min">
+              <InputNumber min={18} max={120} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="age_max" label="Age max">
+              <InputNumber min={18} max={120} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="height_min" label="Height min (cm)">
+              <InputNumber min={50} max={250} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="height_max" label="Height max (cm)">
+              <InputNumber min={50} max={250} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="weight_min" label="Weight min (kg)">
+              <InputNumber min={30} max={300} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="weight_max" label="Weight max (kg)">
+              <InputNumber min={30} max={300} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="body_type" label="Body type">
+              <Select allowClear options={SELECT_OPTIONS('body_type')} />
+            </Form.Item>
+            <Form.Item name="relationship_status" label="Relationship status">
+              <Select allowClear options={SELECT_OPTIONS('relationship_status')} />
+            </Form.Item>
+            <Form.Item name="education" label="Education">
+              <Select allowClear options={SELECT_OPTIONS('education')} />
+            </Form.Item>
+            <Form.Item name="religion" label="Religion">
+              <Select allowClear options={SELECT_OPTIONS('religion')} />
+            </Form.Item>
+            <Form.Item name="ethnicity" label="Ethnicity">
+              <Select allowClear options={SELECT_OPTIONS('ethnicity')} />
+            </Form.Item>
+            <Form.Item name="political_orientation" label="Political orientation">
+              <Select allowClear options={SELECT_OPTIONS('political_orientation')} />
+            </Form.Item>
+            <Form.Item name="smoking" label="Smoking">
+              <Select allowClear options={SELECT_OPTIONS('smoking')} />
+            </Form.Item>
+            <Form.Item name="drinking" label="Drinking">
+              <Select allowClear options={SELECT_OPTIONS('drinking')} />
+            </Form.Item>
+            <Form.Item name="city" label="City">
+              <Input allowClear placeholder="Contains" />
+            </Form.Item>
+            <Form.Item name="country" label="Country">
+              <Input allowClear placeholder="Contains" />
+            </Form.Item>
+            <Form.Item name="province" label="Province">
+              <Input allowClear placeholder="Contains" />
+            </Form.Item>
+            <Form.Item name="languages" label="Languages">
+              <Input allowClear placeholder="Comma-separated, e.g. english,persian" />
+            </Form.Item>
+            <Form.Item name="interests" label="Interests">
+              <Input allowClear placeholder="Comma-separated" />
+            </Form.Item>
+          </div>
+        </Form>
+      </Modal>
 
       <Modal
         title="Grant premium"

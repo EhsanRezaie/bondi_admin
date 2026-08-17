@@ -14,8 +14,27 @@ export interface UserQuery {
   is_verified?: boolean;
   gender?: string;
   city?: string;
+  country?: string;
+  province?: string;
   age_min?: number;
   age_max?: number;
+  height_min?: number;
+  height_max?: number;
+  weight_min?: number;
+  weight_max?: number;
+  body_type?: string;
+  relationship_status?: string;
+  education?: string;
+  religion?: string;
+  ethnicity?: string;
+  political_orientation?: string;
+  smoking?: string;
+  drinking?: string;
+  languages?: string;
+  interests?: string;
+  has_photos?: boolean;
+  sort_by?: string;
+  sort_order?: 'asc' | 'desc';
   limit: number;
   offset: number;
 }

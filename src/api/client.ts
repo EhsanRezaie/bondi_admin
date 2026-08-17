@@ -33,7 +33,7 @@ client.interceptors.response.use(
   (res) => res,
   (error: AxiosError) => {
     const status = error.response?.status;
-    if (status === 401) {
+    if (status === 401 || status === 403) {
       clearToken();
       if (!window.location.pathname.startsWith('/login')) {
         window.location.assign('/login');

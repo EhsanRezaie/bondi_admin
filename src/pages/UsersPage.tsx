@@ -230,18 +230,35 @@ export function UsersPage() {
   };
 
   const applyFilter = (values: Filters) => {
-    const cleaned: Filters = { search: filters.search, uid: values.uid };
-    const keys: (keyof Filters)[] = [
-      'is_active', 'is_premium', 'is_verified', 'gender', 'city', 'country', 'province',
-      'age_min', 'age_max', 'height_min', 'height_max', 'weight_min', 'weight_max',
-      'body_type', 'relationship_status', 'education', 'religion', 'ethnicity',
-      'political_orientation', 'smoking', 'drinking', 'languages', 'interests', 'has_photos'
-    ];
-    for (const k of keys) {
-      const v = values[k];
-      cleaned[k] = v === undefined || v === '' || v === null ? undefined : (v as never);
-    }
-    setFilters(cleaned);
+    const clean = (v: unknown) => (v === undefined || v === '' || v === null ? undefined : v);
+    setFilters({
+      search: filters.search,
+      uid: (clean(values.uid) as string | undefined) ?? '',
+      is_active: clean(values.is_active) as boolean | undefined,
+      is_premium: clean(values.is_premium) as boolean | undefined,
+      is_verified: clean(values.is_verified) as boolean | undefined,
+      gender: clean(values.gender) as string | undefined,
+      city: clean(values.city) as string | undefined,
+      country: clean(values.country) as string | undefined,
+      province: clean(values.province) as string | undefined,
+      age_min: clean(values.age_min) as number | undefined,
+      age_max: clean(values.age_max) as number | undefined,
+      height_min: clean(values.height_min) as number | undefined,
+      height_max: clean(values.height_max) as number | undefined,
+      weight_min: clean(values.weight_min) as number | undefined,
+      weight_max: clean(values.weight_max) as number | undefined,
+      body_type: clean(values.body_type) as string | undefined,
+      relationship_status: clean(values.relationship_status) as string | undefined,
+      education: clean(values.education) as string | undefined,
+      religion: clean(values.religion) as string | undefined,
+      ethnicity: clean(values.ethnicity) as string | undefined,
+      political_orientation: clean(values.political_orientation) as string | undefined,
+      smoking: clean(values.smoking) as string | undefined,
+      drinking: clean(values.drinking) as string | undefined,
+      languages: clean(values.languages) as string | undefined,
+      interests: clean(values.interests) as string | undefined,
+      has_photos: clean(values.has_photos) as boolean | undefined
+    });
     setPage(1);
     setFilterOpen(false);
     setApplyHint((n) => n + 1);

@@ -27,7 +27,7 @@ import {
   setForceUpdate,
   clearVersionOverride
 } from '../api/system';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { VersionConfigResponse } from '../api/types';
 
@@ -52,7 +52,7 @@ export function SystemPage() {
       setVersion(v.data);
       setForceMessage(v.data.force_update_message ?? '');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load system status.'));
+      showApiError(error, 'Failed to load system status.');
     }
   }, []);
 
@@ -68,7 +68,7 @@ export function SystemPage() {
       message.success('Maintenance mode enabled');
       await load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Enable failed.'));
+      showApiError(error, 'Enable failed.');
     } finally {
       setMaintBusy(false);
     }
@@ -81,7 +81,7 @@ export function SystemPage() {
       message.success('Maintenance mode disabled');
       await load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Disable failed.'));
+      showApiError(error, 'Disable failed.');
     } finally {
       setMaintBusy(false);
     }
@@ -95,7 +95,7 @@ export function SystemPage() {
       setMinModal({ open: false, platform: minModal.platform });
       await load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Update failed.'));
+      showApiError(error, 'Update failed.');
     } finally {
       setVersionBusy(false);
     }
@@ -108,7 +108,7 @@ export function SystemPage() {
       message.success(enabled ? 'Force update enabled' : 'Force update disabled');
       await load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Update failed.'));
+      showApiError(error, 'Update failed.');
     } finally {
       setVersionBusy(false);
     }
@@ -121,7 +121,7 @@ export function SystemPage() {
       message.success('Version overrides cleared');
       await load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Clear failed.'));
+      showApiError(error, 'Clear failed.');
     } finally {
       setVersionBusy(false);
     }

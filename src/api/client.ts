@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { message } from 'antd';
 
 const TOKEN_KEY = 'bondi_admin_token';
 
@@ -49,4 +50,17 @@ export function apiErrorMessage(error: unknown, fallback: string): string {
     if (data?.detail) return String(data.detail);
   }
   return fallback;
+}
+
+export function isAuthError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) {
+    const status = error.response?.status;
+    return status === 401 || status === 403;
+  }
+  return false;
+}
+
+export function showApiError(error: unknown, fallback: string): void {
+  if (isAuthError(error)) return;
+  message.error(apiErrorMessage(error, fallback));
 }

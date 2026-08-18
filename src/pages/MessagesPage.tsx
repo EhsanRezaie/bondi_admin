@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, Card, Col, Descriptions, Form, Input, Modal, Row, message } from 'antd';
 import { DeleteOutlined, EyeOutlined, WarningOutlined } from '@ant-design/icons';
 import { decryptMessage, deleteMessage, fetchReportedMessage } from '../api/messages';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { AdminMessageDecryptResponse, AdminReportedMessageResponse } from '../api/types';
 
@@ -24,7 +24,7 @@ export function MessagesPage() {
     try {
       setDecrypted(await decryptMessage(values.message_id));
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Decrypt failed.'));
+      showApiError(error, 'Decrypt failed.');
     } finally {
       setDecrypting(false);
     }
@@ -40,7 +40,7 @@ export function MessagesPage() {
       setDecrypted(null);
       decryptForm.resetFields();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Delete failed.'));
+      showApiError(error, 'Delete failed.');
     } finally {
       setDeleteBusy(false);
     }
@@ -51,7 +51,7 @@ export function MessagesPage() {
     try {
       setReported(await fetchReportedMessage(values.report_id));
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Fetch failed.'));
+      showApiError(error, 'Fetch failed.');
     } finally {
       setReportedBusy(false);
     }

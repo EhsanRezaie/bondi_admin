@@ -50,7 +50,7 @@ import {
   sendUserMessage
 } from '../api/users';
 import type { UserQuery } from '../api/users';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate, formatDateOnly } from '../utils/format';
 import type { AdminUser, AdminUserPhoto, AdminUserListItem, UserActivityEntry } from '../api/types';
 
@@ -216,7 +216,7 @@ export function UsersPage() {
       setItems(res.users);
       setTotal(res.total);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load users.'));
+      showApiError(error, 'Failed to load users.');
     } finally {
       setLoading(false);
     }
@@ -234,7 +234,7 @@ export function UsersPage() {
       setDetail(u);
       setActivity(a);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load user detail.'));
+      showApiError(error, 'Failed to load user detail.');
     } finally {
       setDetailLoading(false);
     }
@@ -301,7 +301,7 @@ export function UsersPage() {
       setDetail(updated);
       message.success(isActive ? 'User activated' : 'User deactivated');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Update failed.'));
+      showApiError(error, 'Update failed.');
     }
   };
 
@@ -315,7 +315,7 @@ export function UsersPage() {
       setPremiumOpen(false);
       message.success('Premium granted');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Grant failed.'));
+      showApiError(error, 'Grant failed.');
     } finally {
       setPremiumSubmitting(false);
     }
@@ -330,7 +330,7 @@ export function UsersPage() {
       setMessageOpen(false);
       messageForm.resetFields();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Send failed.'));
+      showApiError(error, 'Send failed.');
     } finally {
       setMessageSubmitting(false);
     }
@@ -343,7 +343,7 @@ export function UsersPage() {
       setDetail(null);
       void load();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Delete failed.'));
+      showApiError(error, 'Delete failed.');
     }
   };
 

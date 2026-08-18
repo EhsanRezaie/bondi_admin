@@ -15,7 +15,7 @@ import {
 } from 'antd';
 import { ReloadOutlined, DeleteOutlined, SendOutlined } from '@ant-design/icons';
 import { fetchTickets, fetchTicket, updateTicket, replyTicket, deleteTicket } from '../api/tickets';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { AdminTicket, AdminTicketDetail, AdminTicketMessage } from '../api/types';
 
@@ -44,7 +44,7 @@ export function TicketsPage() {
       setItems(res.tickets);
       setTotal(res.total);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load tickets.'));
+      showApiError(error, 'Failed to load tickets.');
     } finally {
       setLoading(false);
     }
@@ -61,7 +61,7 @@ export function TicketsPage() {
       const fresh = await fetchTicket(ticket.id);
       setDetail(fresh);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load ticket.'));
+      showApiError(error, 'Failed to load ticket.');
     } finally {
       setDetailLoading(false);
     }
@@ -76,7 +76,7 @@ export function TicketsPage() {
       responseForm.resetFields();
       message.success('Reply sent');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Send failed.'));
+      showApiError(error, 'Send failed.');
     }
   };
 
@@ -88,7 +88,7 @@ export function TicketsPage() {
       setItems((prev) => prev.map((t) => (t.id === detail.id ? updated : t)));
       message.success('Status updated');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Update failed.'));
+      showApiError(error, 'Update failed.');
     }
   };
 
@@ -99,7 +99,7 @@ export function TicketsPage() {
       setDetail(null);
       void load(page, statusFilter);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Delete failed.'));
+      showApiError(error, 'Delete failed.');
     }
   };
 

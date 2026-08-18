@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Col, Row, Statistic, message, Tag } from 'antd';
+import { Card, Col, Row, Statistic, Tag } from 'antd';
 import {
   TeamOutlined,
   UserAddOutlined,
@@ -30,7 +30,7 @@ import {
   fetchReportStats,
   fetchTicketStats
 } from '../api/dashboard';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import type {
   DashboardOverview,
   TimeSeriesResponse,
@@ -76,7 +76,7 @@ export function DashboardPage() {
           setTicketStats(ts);
         }
       } catch (error) {
-        message.error(apiErrorMessage(error, 'Failed to load dashboard.'));
+        showApiError(error, 'Failed to load dashboard.');
       } finally {
         if (!cancelled) setLoading(false);
       }

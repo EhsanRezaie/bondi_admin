@@ -15,7 +15,7 @@ import {
 } from 'antd';
 import { ReloadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { fetchReports, fetchReport, updateReport, deleteReport } from '../api/reports';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { AdminReport } from '../api/types';
 
@@ -44,7 +44,7 @@ export function ReportsPage() {
       setOffset(off);
       setItems((prev) => (append ? [...prev, ...list] : list));
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load reports.'));
+      showApiError(error, 'Failed to load reports.');
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ export function ReportsPage() {
       setDetail(fresh);
       updateForm.setFieldsValue({ status: fresh.status, admin_note: fresh.admin_note ?? undefined });
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load report.'));
+      showApiError(error, 'Failed to load report.');
     } finally {
       setDetailLoading(false);
     }
@@ -76,7 +76,7 @@ export function ReportsPage() {
       setItems((prev) => prev.map((r) => (r.id === detail.id ? updated : r)));
       message.success('Report updated');
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Update failed.'));
+      showApiError(error, 'Update failed.');
     }
   };
 
@@ -87,7 +87,7 @@ export function ReportsPage() {
       setDetail(null);
       setItems((prev) => prev.filter((r) => r.id !== id));
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Delete failed.'));
+      showApiError(error, 'Delete failed.');
     }
   };
 

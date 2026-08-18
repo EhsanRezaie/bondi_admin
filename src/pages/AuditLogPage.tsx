@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, Form, Input, Select, Space, Table, Tag, message } from 'antd';
+import { Button, Card, Form, Input, Select, Space, Table, Tag } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import type { TablePaginationConfig } from 'antd';
 import { DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import { fetchLogs } from '../api/logs';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { AdminLogEntry } from '../api/types';
 
@@ -39,7 +39,7 @@ export function AuditLogPage() {
       setItems(res.logs);
       setTotal(res.total);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load audit logs.'));
+      showApiError(error, 'Failed to load audit logs.');
     } finally {
       setLoading(false);
     }

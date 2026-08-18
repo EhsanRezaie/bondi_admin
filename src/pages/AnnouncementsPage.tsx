@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, Card, Form, Input, Modal, Row, Col, Switch, Typography, message } from 'antd';
 import { NotificationOutlined, ExperimentOutlined } from '@ant-design/icons';
 import { sendAnnouncement, sendTestAnnouncement } from '../api/announcements';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 
 const { TextArea } = Input;
 
@@ -27,7 +27,7 @@ export function AnnouncementsPage() {
       message.success(res.message);
       broadcastForm.resetFields();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Send failed.'));
+      showApiError(error, 'Send failed.');
     } finally {
       setBroadcasting(false);
     }
@@ -41,7 +41,7 @@ export function AnnouncementsPage() {
       setTestOpen(false);
       testForm.resetFields();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Test send failed.'));
+      showApiError(error, 'Test send failed.');
     } finally {
       setTesting(false);
     }

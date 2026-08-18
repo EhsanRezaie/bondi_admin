@@ -18,7 +18,7 @@ import {
   ReloadOutlined
 } from '@ant-design/icons';
 import { fetchPendingPhotos, fetchPhotoStats, approvePhoto, rejectPhoto, verifyFace } from '../api/photos';
-import { apiErrorMessage } from '../api/client';
+import { showApiError } from '../api/client';
 import { formatDate } from '../utils/format';
 import type { AdminPendingPhoto, AdminPhotoStats } from '../api/types';
 
@@ -42,7 +42,7 @@ export function PhotosPage() {
       setItems(off === 0 ? list : (prev) => [...prev, ...list]);
       setOffset(off);
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Failed to load photos.'));
+      showApiError(error, 'Failed to load photos.');
     } finally {
       setLoading(false);
     }
@@ -70,7 +70,7 @@ export function PhotosPage() {
       setItems((prev) => prev.filter((p) => p.id !== id));
       void refreshStats();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Action failed.'));
+      showApiError(error, 'Action failed.');
     } finally {
       setActionBusy(null);
     }
@@ -86,7 +86,7 @@ export function PhotosPage() {
       setRejectTarget(null);
       void refreshStats();
     } catch (error) {
-      message.error(apiErrorMessage(error, 'Reject failed.'));
+      showApiError(error, 'Reject failed.');
     } finally {
       setActionBusy(null);
     }
